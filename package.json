@@ -1,12 +1,24 @@
 {
-  "name": "@dchicchon/react_env",
-  "version": "1.0.0",
-  "description": "",
+  "name": "@dchicchon/react-env",
+  "version": "1.1.0",
+  "description": "Create a React Environment similar to Conda Env. No need to constantly create multiple create react apps",
   "main": "index.js",
+  "bin": {
+    "react-env-root": "bin/index.js",
+    "react-env-run": "bin/run.js",
+    "react-env-list": "bin/list.js"
+  },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/dchicchon/react_env.git"
+  },
   "keywords": [],
   "author": "",
-  "license": "ISC"
+  "license": "ISC",
+  "dependencies": {
+    "shelljs": "^0.8.4"
+  }
 }

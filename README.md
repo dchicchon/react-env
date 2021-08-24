@@ -33,7 +33,6 @@ This is an example of how the config is setup
         "nodemon": "^2.0.12"
       }
     }
-    // additional envs can be added here
   }
 }
 ```

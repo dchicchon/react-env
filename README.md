@@ -18,9 +18,21 @@ This is an example of how the config is setup
   "current": "base",
   "envs": {
     "base": {
-      "root": "path/to/src",
-      "dependencies": {},
-      "devDependencies": {}
+      "root": "C:\\Users\\danie\\Desktop\\Code\\JS\\npm_packages\\react-test",
+      "dependencies": {
+        "@testing-library/jest-dom": "^5.14.1",
+        "@testing-library/react": "^11.2.7",
+        "@testing-library/user-event": "^12.8.3",
+        "react": "^17.0.2",
+        "react-dom": "^17.0.2",
+        "react-scripts": "^4.0.3",
+        "web-vitals": "^1.1.2"
+      },
+      "devDependencies": {
+        "axios": "^0.21.1",
+        "express": "^4.17.1",
+        "nodemon": "^2.0.12"
+      }
     }
   }
 }

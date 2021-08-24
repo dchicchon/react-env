@@ -95,5 +95,9 @@ react-env delete test
 ```
 
 # Packages Used
-
 [ShellJS](https://github.com/shelljs/shelljs) - Shell commands
+[Chalk](https://www.npmjs.com/package/chalk) - Coloring console logs
+
+# Developed With
+[TypeScript](https://www.typescriptlang.org/)
+

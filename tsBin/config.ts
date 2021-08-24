@@ -1,7 +1,6 @@
 #! /usr/bin/env node
-import {Config} from '../interfaces/Types'
-// import * as fs from 'fs';
-import * as path from 'path'
+import { Config } from '../interfaces/Types'
+const path = require('path')
 const fs = require("fs");
 // const path = require("path");
 const configFile = path.join(path.dirname(__filename), "../lib/config.json");

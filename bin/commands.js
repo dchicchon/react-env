@@ -1,58 +1,43 @@
 #! /usr/bin/env node
 "use strict";
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || function (mod) {
-    if (mod && mod.__esModule) return mod;
-    var result = {};
-    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
-    __setModuleDefault(result, mod);
-    return result;
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-const fs = __importStar(require("fs"));
-const shell = __importStar(require("shelljs"));
-const path = __importStar(require("path"));
-const configFile = path.join(path.dirname(__filename), "../lib/config.json");
+const fs_1 = __importDefault(require("fs"));
+const shelljs_1 = __importDefault(require("shelljs"));
+const path_1 = __importDefault(require("path"));
+const chalk_1 = __importDefault(require("chalk"));
+const configFile = path_1.default.join(path_1.default.dirname(__filename), "../lib/config.json");
 const root = () => {
     const currentDirectory = process.cwd();
-    console.log(`Saving ${currentDirectory} as root`);
-    const rawData = fs.readFileSync(configFile);
+    console.log(chalk_1.default.cyan(`Saving ${currentDirectory} as root`));
+    const rawData = fs_1.default.readFileSync(configFile);
     const config = JSON.parse(rawData.toString());
     const env = config.envs[config.current];
-    const rootJSON = path.join(currentDirectory, "/package.json");
-    const rootFile = fs.readFileSync(rootJSON);
+    const rootJSON = path_1.default.join(currentDirectory, "/package.json");
+    const rootFile = fs_1.default.readFileSync(rootJSON);
     env.root = currentDirectory;
     env.dependencies = JSON.parse(rootFile.toString()).dependencies;
     env.devDependencies = JSON.parse(rootFile.toString()).devDependencies;
     const data = JSON.stringify(config);
-    fs.writeFile(configFile, data, "utf8", (err) => {
+    fs_1.default.writeFile(configFile, data, "utf8", (err) => {
         if (err)
             console.error(err);
     });
 };
 const run = () => {
     const srcDirectory = process.cwd();
-    console.log(`Running ${srcDirectory} at root`);
-    const rawData = fs.readFileSync(configFile);
+    console.log(chalk_1.default.cyan(`Running ${srcDirectory} at root`));
+    const rawData = fs_1.default.readFileSync(configFile);
     const config = JSON.parse(rawData.toString());
     const root = config.envs[config.current].root;
-    shell.cp("-R", process.cwd(), root + "/src");
-    shell.cd(root);
-    shell.exec("npm start");
+    shelljs_1.default.cp("-R", process.cwd(), root + "/src");
+    shelljs_1.default.cd(root);
+    shelljs_1.default.exec("npm start");
 };
 const config = () => {
-    const rawData = fs.readFileSync(configFile);
+    const rawData = fs_1.default.readFileSync(configFile);
     const config = JSON.parse(rawData.toString());
     const env = config.envs[config.current];
     const flag = process.argv[3];
@@ -60,65 +45,100 @@ const config = () => {
         switch (flag) {
             case "-envs":
                 let list = Object.keys(config.envs).filter((key) => key !== "current");
-                console.log("List of envs");
-                list.forEach((env) => console.log(env));
+                console.log(chalk_1.default.cyan("List of envs"));
+                list.forEach((env) => console.log(chalk_1.default.cyan(env)));
                 break;
         }
     }
     else {
-        console.log(`Current Config: ${config.current}`);
+        console.log(chalk_1.default.cyan(`Current Config: ${config.current}`));
         console.log(env);
     }
 };
 const uninstallEnv = () => {
-    const rawData = fs.readFileSync(configFile);
+    const rawData = fs_1.default.readFileSync(configFile);
     const config = JSON.parse(rawData.toString());
     const env = config.envs[config.current];
-    shell.cd(env.root);
+    shelljs_1.default.cd(env.root);
     if (process.argv.length === 3) {
-        console.log("Please specify what you would like to uninstall. Use -all to delete all, or simply list packages to delete");
+        console.log(chalk_1.default.cyan("Please specify what you would like to uninstall. Use -all to delete all, or simply list packages to delete"));
     }
-    else if (process.argv[5] === '-all') {
-        console.log("Uninstalling all packages");
-        shell.exec('for package in `ls node_modules`; do npm uninstall $package; done;');
+    else if (process.argv[3] === '-all') {
+        console.log(chalk_1.default.cyan("Uninstalling all packages"));
+        for (let i = 0; i < Object.keys(env.dependencies).length; i++) {
+            const dep = Object.keys(env.dependencies)[i];
+            console.log(chalk_1.default.cyan(`Uninstalling package ${dep}`));
+            shelljs_1.default.exec(`npm uninstall ${dep}`);
+        }
+        for (let i = 0; i < Object.keys(env.devDependencies).length; i++) {
+            const dep = Object.keys(env.devDependencies)[i];
+            console.log(chalk_1.default.cyan(`Uninstalling package ${dep}`));
+            shelljs_1.default.exec(`npm uninstall ${dep}`);
+        }
+        env.dependencies = {};
+        env.devDependencies = {};
+        const data = JSON.stringify(config);
+        fs_1.default.writeFile(configFile, data, "utf8", (err) => {
+            if (err)
+                console.error(err);
+        });
     }
     else {
-        for (let i = 4; i < process.argv.length; i++) {
-            console.log(`Uninstalling package ${process.argv[i]}`);
-            shell.exec(`npm i uninstall ${process.argv[i]}`);
-        }
-    }
-};
-const installEnv = () => {
-    console.log("Installing Environment Packages");
-    const rawData = fs.readFileSync(configFile);
-    const config = JSON.parse(rawData.toString());
-    const env = config.envs[config.current];
-    shell.cd(env.root);
-    const flag = process.argv[3];
-    if (process.argv.length === 3) {
-        for (const dep in env.dependencies) {
-            shell.exec(`npm install ${dep}`);
-        }
-        for (const dep in env.devDependencies) {
-            shell.exec(`npm install ${dep} --save-dev`);
-        }
-    }
-    else if (flag === "-dev") {
-        for (let i = 4; i < process.argv.length; i++) {
-            let dep = process.argv[i];
+        for (let i = 3; i < process.argv.length; i++) {
             try {
-                shell.exec(`npm install ${dep} --save-dev`);
+                console.log(chalk_1.default.cyan(`Uninstalling package ${process.argv[i]}`));
+                shelljs_1.default.exec(`npm uninstall ${process.argv[i]}`);
+                env.dependencies[process.argv[i]] ? delete env.dependencies[process.argv[i]] : delete env.devDependencies[process.argv[i]];
             }
             catch (error) {
                 console.error(error);
             }
         }
-        const rootJSON = path.join(process.cwd(), "/package.json");
-        const rootFile = fs.readFileSync(rootJSON);
+        const data = JSON.stringify(config);
+        fs_1.default.writeFile(configFile, data, "utf8", (err) => {
+            if (err)
+                console.error(err);
+        });
+    }
+};
+const installEnv = () => {
+    const rawData = fs_1.default.readFileSync(configFile);
+    const config = JSON.parse(rawData.toString());
+    const env = config.envs[config.current];
+    shelljs_1.default.cd(env.root);
+    const flag = process.argv[3];
+    if (env.root === '') {
+        console.log(chalk_1.default.cyan("You must root an reach app before installing any dependencies"));
+        return;
+    }
+    if (process.argv.length === 3) {
+        console.log(chalk_1.default.cyan("Installing Environment Packages"));
+        for (const dep in env.dependencies) {
+            console.log(chalk_1.default.cyan(`Installing ${dep}`));
+            shelljs_1.default.exec(`npm install ${dep}`);
+        }
+        for (const dep in env.devDependencies) {
+            console.log(chalk_1.default.cyan(`Installing ${dep}`));
+            shelljs_1.default.exec(`npm install ${dep} --save-dev`);
+        }
+    }
+    else if (flag === "-dev") {
+        for (let i = 4; i < process.argv.length; i++) {
+            let dep = process.argv[i];
+            console.log(chalk_1.default.cyan(`Installing Package ${dep} in dev`));
+            try {
+                shelljs_1.default.exec(`npm install ${dep} --save-dev`);
+                env.dependencies[dep] && delete env.dependencies[dep];
+            }
+            catch (error) {
+                console.error(error);
+            }
+        }
+        const rootJSON = path_1.default.join(process.cwd(), "/package.json");
+        const rootFile = fs_1.default.readFileSync(rootJSON);
         env.devDependencies = JSON.parse(rootFile.toString()).devDependencies;
         const data = JSON.stringify(config);
-        fs.writeFile(configFile, data, "utf8", (err) => {
+        fs_1.default.writeFile(configFile, data, "utf8", (err) => {
             if (err)
                 console.error(err);
         });
@@ -126,18 +146,20 @@ const installEnv = () => {
     else {
         for (let i = 3; i < process.argv.length; i++) {
             let dep = process.argv[i];
+            console.log(chalk_1.default.cyan(`Installing Package ${dep}`));
             try {
-                shell.exec(`npm install ${dep}`);
+                shelljs_1.default.exec(`npm install ${dep}`);
+                env.devDependencies[dep] && delete env.devDependencies[dep];
             }
             catch (error) {
                 console.error(error);
             }
         }
-        const rootJSON = path.join(process.cwd(), "/package.json");
-        const rootFile = fs.readFileSync(rootJSON);
-        env.devDependencies = JSON.parse(rootFile.toString()).dependencies;
+        const rootJSON = path_1.default.join(process.cwd(), "/package.json");
+        const rootFile = fs_1.default.readFileSync(rootJSON);
+        env.dependencies = JSON.parse(rootFile.toString()).dependencies;
         const data = JSON.stringify(config);
-        fs.writeFile(configFile, data, "utf8", (err) => {
+        fs_1.default.writeFile(configFile, data, "utf8", (err) => {
             if (err)
                 console.error(err);
         });
@@ -145,42 +167,56 @@ const installEnv = () => {
 };
 const switchEnv = () => {
     const newEnv = process.argv[3];
-    const rawData = fs.readFileSync(configFile);
+    const rawData = fs_1.default.readFileSync(configFile);
     const config = JSON.parse(rawData.toString());
     if (config.current === newEnv) {
-        console.log(`Already on environment:${newEnv} `);
+        console.log(chalk_1.default.cyan(`Already on environment:${newEnv}`));
         return;
     }
     if (config.envs[newEnv] === undefined) {
-        console.log(`Creating new environment:${newEnv}`);
+        console.log(chalk_1.default.cyan(`Creating new environment:${newEnv}`));
         const env = {
             root: "",
-            dependencies: "",
-            devDependencies: "",
+            dependencies: {},
+            devDependencies: {},
         };
         config.envs[newEnv] = env;
     }
     else {
-        console.log(`Switching to environment: ${newEnv}`);
+        console.log(chalk_1.default.cyan(`Switching to environment: ${newEnv}`));
     }
+    config.current = newEnv;
     const data = JSON.stringify(config);
-    fs.writeFile(configFile, data, "utf8", (err) => {
+    fs_1.default.writeFile(configFile, data, "utf8", (err) => {
         if (err)
             console.error(err);
     });
 };
 const deleteEnv = () => {
-    const env = process.argv[3];
-    console.log(`Deleting Environment: ${env}`);
-    const rawData = fs.readFileSync(configFile);
+    if (process.argv.length === 3) {
+        console.log(chalk_1.default.cyan("You must input envs to delete"));
+        return;
+    }
+    const rawData = fs_1.default.readFileSync(configFile);
     const config = JSON.parse(rawData.toString());
-    if (config.current === env)
-        config.current = '';
-    delete config.envs[env];
-    if (Object.keys(config.envs).length === 0)
-        console.log("No envs detected in config.json. To create a new env, use switch command.");
+    if (Object.keys(config.envs).length === 0) {
+        console.log(chalk_1.default.cyan("No environments detected in config"));
+    }
+    for (let i = 3; i < process.argv.length; i++) {
+        const env = process.argv[i];
+        console.log(chalk_1.default.cyan(`Deleting environment: ${env}`));
+        if (config.envs[env]) {
+            delete config.envs[env];
+            if (config.current === env)
+                config.current = '';
+        }
+        else {
+            console.log(chalk_1.default.cyan('Environment not found. Skipping...'));
+            continue;
+        }
+    }
     const data = JSON.stringify(config);
-    fs.writeFile(configFile, data, "utf8", (err) => {
+    fs_1.default.writeFile(configFile, data, "utf8", (err) => {
         if (err)
             console.error(err);
     });

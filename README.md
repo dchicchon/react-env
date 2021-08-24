@@ -44,43 +44,55 @@ Setting Root Directory for React App
 
 ```console
 // run this in the desired root of the react app
-react-env-root;
+react-env root;
 ```
 
 Running `src` folder in root
 
 ```console
 // run this in desired `src` folder to run in root
-react-env-run;
+react-env run;
 ```
 
 Checking current config
 
 ```console
 // this will check your current environment config
-react-env-config
+react-env config
 // use flag -envs to list envs
-react-env-config -envs
+react-env config -envs
 ```
 
 Install dependencies to your root react app from anywhere
 
 ```console
 // have root install the dependencies in the current env
-react-env-install
+react-env install
 
 // install dependencies
-react-env-install axios
+react-env install axios
 
 // use flag -dev to install devDependencies
-react-env-install -dev axios
+react-env install -dev axios
 ```
 
 Switch or create a new environment
 
 ```console
 // if 'test' does not exist, it will create a new environment
-react-env-switch test
+react-env switch test
+```
+
+Uninstall dependencies from env
+
+```console
+react-env uninstall
+```
+
+Delete environments in config
+
+```console
+react-env delete test
 ```
 
 # Packages Used

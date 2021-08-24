@@ -1,7 +1,11 @@
+interface Dependency {
+    [index: string]: string
+}
+
 interface Environment {
     root: string,
-    dependencies: Object,
-    devDependencies: Object
+    dependencies: Dependency,
+    devDependencies: Dependency
 }
 
 export interface Config {

@@ -1,14 +1,15 @@
 #! /usr/bin/env node
 import { Config } from '../interfaces/Types'
-import * as fs from 'fs'
-import * as shell from 'shelljs'
-import * as path from 'path'
+import fs from 'fs'
+import shell from 'shelljs'
+import path from 'path'
+import chalk from 'chalk';
 
 const configFile = path.join(path.dirname(__filename), "../lib/config.json");
 
 const root = () => {
     const currentDirectory = process.cwd(); // directory where we run command
-    console.log(`Saving ${currentDirectory} as root`);
+    console.log(chalk.cyan(`Saving ${currentDirectory} as root`));
     const rawData = fs.readFileSync(configFile);
     const config: Config = JSON.parse(rawData.toString()); // get config
     const env = config.envs[config.current]; // select current env
@@ -30,7 +31,7 @@ const root = () => {
 
 const run = () => {
     const srcDirectory = process.cwd(); // hopefully a src directory
-    console.log(`Running ${srcDirectory} at root`);
+    console.log(chalk.cyan(`Running ${srcDirectory} at root`));
     // Lets read our config file
     const rawData = fs.readFileSync(configFile);
     const config: Config = JSON.parse(rawData.toString());
@@ -59,12 +60,12 @@ const config = () => {
         switch (flag) {
             case "-envs":
                 let list = Object.keys(config.envs).filter((key) => key !== "current");
-                console.log("List of envs");
-                list.forEach((env) => console.log(env));
+                console.log(chalk.cyan("List of envs"));
+                list.forEach((env) => console.log(chalk.cyan(env)));
                 break;
         }
     } else {
-        console.log(`Current Config: ${config.current}`);
+        console.log(chalk.cyan(`Current Config: ${config.current}`));
         console.log(env);
     }
 
@@ -77,20 +78,48 @@ const uninstallEnv = () => {
     shell.cd(env.root); // navigate to root to uninstall items there
     // Dont need to worry about flag, just see how many args there are
     if (process.argv.length === 3) {
-        console.log("Please specify what you would like to uninstall. Use -all to delete all, or simply list packages to delete")
+        console.log(chalk.cyan("Please specify what you would like to uninstall. Use -all to delete all, or simply list packages to delete"))
         // uninstall everything in root env
     }
-    else if (process.argv[5] === '-all') {
-        console.log("Uninstalling all packages")
-        shell.exec('for package in `ls node_modules`; do npm uninstall $package; done;')
+    else if (process.argv[3] === '-all') {
+        console.log(chalk.cyan("Uninstalling all packages"))
+        // look at config to see what to uninstall
+        for (let i = 0; i < Object.keys(env.dependencies).length; i++) {
+            const dep = Object.keys(env.dependencies)[i]
+            console.log(chalk.cyan(`Uninstalling package ${dep}`))
+            shell.exec(`npm uninstall ${dep}`)
+        }
+        for (let i = 0; i < Object.keys(env.devDependencies).length; i++) {
+            const dep = Object.keys(env.devDependencies)[i]
+            console.log(chalk.cyan(`Uninstalling package ${dep}`))
+            shell.exec(`npm uninstall ${dep}`)
+        }
+
+        env.dependencies = {}
+        env.devDependencies = {}
+        const data = JSON.stringify(config);
+        fs.writeFile(configFile, data, "utf8", (err) => {
+            if (err) console.error(err);
+        });
 
     }
     else {
         // only install these packages
-        for (let i = 4; i < process.argv.length; i++) {
-            console.log(`Uninstalling package ${process.argv[i]}`)
-            shell.exec(`npm i uninstall ${process.argv[i]}`)
+        for (let i = 3; i < process.argv.length; i++) {
+            try {
+                console.log(chalk.cyan(`Uninstalling package ${process.argv[i]}`))
+                shell.exec(`npm uninstall ${process.argv[i]}`)
+                env.dependencies[process.argv[i]] ? delete env.dependencies[process.argv[i]] : delete env.devDependencies[process.argv[i]]
+            } catch (error) {
+                console.error(error)
+            }
         }
+
+        // Make sure to add all packages here
+        const data = JSON.stringify(config);
+        fs.writeFile(configFile, data, "utf8", (err) => {
+            if (err) console.error(err);
+        });
     }
 
 
@@ -98,29 +127,38 @@ const uninstallEnv = () => {
 
 const installEnv = () => {
     // Install to root
-    console.log("Installing Environment Packages")
     const rawData = fs.readFileSync(configFile);
     const config: Config = JSON.parse(rawData.toString());
     const env = config.envs[config.current];
     shell.cd(env.root); // navigate to root to install items there
     const flag: string = process.argv[3];
+    if (env.root === '') {
+        console.log(chalk.cyan("You must root an reach app before installing any dependencies"))
+        return
+    }
     if (process.argv.length === 3) {
+        console.log(chalk.cyan("Installing Environment Packages"))
         // install both dependencies and devDependencies from config -> root
         for (const dep in env.dependencies) {
+            console.log(chalk.cyan(`Installing ${dep}`))
             shell.exec(`npm install ${dep}`);
         }
         for (const dep in env.devDependencies) {
+            console.log(chalk.cyan(`Installing ${dep}`))
             shell.exec(`npm install ${dep} --save-dev`);
         }
     } else if (flag === "-dev") {
         for (let i = 4; i < process.argv.length; i++) {
             let dep = process.argv[i];
+            console.log(chalk.cyan(`Installing Package ${dep} in dev`))
             try {
                 shell.exec(`npm install ${dep} --save-dev`);
+                env.dependencies[dep] && delete env.dependencies[dep]
             } catch (error) {
                 console.error(error);
             }
         }
+
         const rootJSON = path.join(process.cwd(), "/package.json");
         const rootFile = fs.readFileSync(rootJSON);
         env.devDependencies = JSON.parse(rootFile.toString()).devDependencies;
@@ -129,47 +167,48 @@ const installEnv = () => {
             if (err) console.error(err);
         });
     } else {
+
         for (let i = 3; i < process.argv.length; i++) {
             let dep = process.argv[i];
+            console.log(chalk.cyan(`Installing Package ${dep}`))
             try {
                 shell.exec(`npm install ${dep}`);
-                // Add it to config
+                env.devDependencies[dep] && delete env.devDependencies[dep]
             } catch (error) {
                 console.error(error);
             }
         }
         const rootJSON = path.join(process.cwd(), "/package.json");
         const rootFile = fs.readFileSync(rootJSON);
-        env.devDependencies = JSON.parse(rootFile.toString()).dependencies;
+        env.dependencies = JSON.parse(rootFile.toString()).dependencies;
         const data = JSON.stringify(config);
         fs.writeFile(configFile, data, "utf8", (err) => {
             if (err) console.error(err);
         });
     }
-
 }
 
 const switchEnv = () => {
     const newEnv: string = process.argv[3];
-
     const rawData = fs.readFileSync(configFile);
     const config: Config = JSON.parse(rawData.toString());
     if (config.current === newEnv) {
-        console.log(`Already on environment:${newEnv} `)
+        console.log(chalk.cyan(`Already on environment:${newEnv}`))
         return
     }
     // If the env we switched to is not in our config.envs, create a new env
     if (config.envs[newEnv] === undefined) {
-        console.log(`Creating new environment:${newEnv}`)
+        console.log(chalk.cyan(`Creating new environment:${newEnv}`))
         const env = {
             root: "",
-            dependencies: "",
-            devDependencies: "",
+            dependencies: {},
+            devDependencies: {},
         };
-        config.envs[newEnv] = env;
+        config.envs[newEnv] = env
     } else {
-        console.log(`Switching to environment: ${newEnv}`)
+        console.log(chalk.cyan(`Switching to environment: ${newEnv}`))
     }
+    config.current = newEnv
     const data = JSON.stringify(config);
     fs.writeFile(configFile, data, "utf8", (err) => {
         if (err) console.error(err);
@@ -178,13 +217,26 @@ const switchEnv = () => {
 }
 
 const deleteEnv = () => {
-    const env: string = process.argv[3];
-    console.log(`Deleting Environment: ${env}`)
+    if (process.argv.length === 3) {
+        console.log(chalk.cyan("You must input envs to delete"))
+        return
+    }
     const rawData = fs.readFileSync(configFile);
     const config: Config = JSON.parse(rawData.toString());
-    if (config.current === env) config.current = ''
-    delete config.envs[env]
-    if (Object.keys(config.envs).length === 0) console.log("No envs detected in config.json. To create a new env, use switch command.")
+    if (Object.keys(config.envs).length === 0) {
+        console.log(chalk.cyan("No environments detected in config"))
+    }
+    for (let i = 3; i < process.argv.length; i++) {
+        const env: string = process.argv[i];
+        console.log(chalk.cyan(`Deleting environment: ${env}`))
+        if (config.envs[env]) {
+            delete config.envs[env]
+            if (config.current === env) config.current = ''
+        } else {
+            console.log(chalk.cyan('Environment not found. Skipping...'))
+            continue
+        }
+    }
     const data = JSON.stringify(config);
     fs.writeFile(configFile, data, "utf8", (err) => {
         if (err) console.error(err);

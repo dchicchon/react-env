@@ -1,5 +1,10 @@
 #! /usr/bin/env node
 "use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+const chalk_1 = __importDefault(require("chalk"));
 const { root, run, config, uninstallEnv, installEnv, switchEnv, deleteEnv } = require('./commands');
 const command = process.argv[2];
 switch (command) {
@@ -25,13 +30,13 @@ switch (command) {
         deleteEnv();
         break;
     default:
-        console.log(`\nReact Env: Creating Multiple React Environments\n\n` +
-            `Please Try one of the following commands:\n` +
-            `root: sets current environment root \n` +
-            `run: runs the current src directory \n` +
-            `config: prints out the current environment config \n` +
-            `install: installs packages to current environment \n` +
-            `uninstall: uninstalls packages in current environment \n` +
-            `delete: sets current environment root \n`);
+        console.log(chalk_1.default.underline.cyan(`\nReact-Env: Creating Multiple React Environments\n\n`) +
+            chalk_1.default.cyan(`Try one of the following commands:\n` +
+                chalk_1.default.green(`root`) + `: sets current environment root \n` +
+                chalk_1.default.green(`run`) + `: runs the current src directory \n` +
+                chalk_1.default.green(`config [-envs]`) + ` : prints out the current environment config \n` +
+                chalk_1.default.green(`install [-dev] [packages]`) + `: installs packages to current environment \n` +
+                chalk_1.default.green(`uninstall [-all] [packages]`) + `: uninstalls packages in current environment \n` +
+                chalk_1.default.green(`delete [envs]`) + `: delete an environment \n`));
         break;
 }

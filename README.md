@@ -6,6 +6,27 @@ Use Create React App only once! Then you are able to get any `src` folder and ru
 ```console
 npm i -g @dchicchon/react-env
 ```
+
+
+
+
+
+# Config Setup
+This is an example of how the config is setup
+```json
+{
+  "current": "base",
+  "envs": {
+    "base": {
+      "root": "path/to/src",
+      "dependencies": {},
+      "devDependencies": {}
+    }
+  }
+}
+
+```
+
 # Usage
 
 Setting Root Directory for React App

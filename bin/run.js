@@ -9,7 +9,7 @@ const srcDirectory = process.cwd();
 console.log(`Running ${srcDirectory} at root`);
 const rawData = fs.readFileSync(configFile);
 const config = JSON.parse(rawData);
-const root = config[config.current].root;
+const root = config.envs[config.current].root;
 shell.cp("-R", process.cwd(), root + "/src");
 shell.cd(root);
 shell.exec("npm start");

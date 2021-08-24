@@ -1,4 +1,10 @@
 {
   "current": "base",
-  "envs": {}
+  "envs": {
+    "base": {
+      "root": "",
+      "dependencies": {},
+      "devDependencies": {}
+    }
+  }
 }

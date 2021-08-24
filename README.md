@@ -3,22 +3,22 @@
 Use Create React App only once! Then you are able to get any `src` folder and run it on a root React App.
 
 # Installation
-
-`npm i -g @dchicchon/react-env`
-
+```console
+npm i -g @dchicchon/react-env
+```
 # Usage
 
 Setting Root Directory for React App
 
 ```console
-// 'run this in the desired root of the react app'
+// run this in the desired root of the react app
 react-env-root;
 ```
 
 Running `src` folder in root
 
 ```console
-// 'run this in desired `src` folder to run in root'
+// run this in desired `src` folder to run in root
 react-env-run;
 ```
 

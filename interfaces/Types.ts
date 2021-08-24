@@ -5,7 +5,9 @@ interface Environment {
 }
 
 export interface Config {
-    current: any,
-    [index: string]: Environment,
+    current: string,
+    envs: {
+        [index: string]: Environment
+    }
 }
 

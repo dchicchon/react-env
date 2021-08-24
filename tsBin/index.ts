@@ -8,7 +8,7 @@ console.log(`Saving ${currentDirectory} as root`);
 
 const rawData = fs.readFileSync(configFile);
 const config: Config = JSON.parse(rawData); // get config
-const env = config[config.current]; // select current env
+const env = config.envs[config.current]; // select current env
 // get packages in current directory
 const rootJSON = path.join(currentDirectory, "/package.json");
 const rootFile = fs.readFileSync(rootJSON);

@@ -6,6 +6,6 @@
       "preserveConstEnums": true
 
     },
-    "include": ["tsBin"],
-    "exclude": ["node_modules","interfaces"]
+    "include": ["tsbin"],
+    "exclude": ["node_modules"]
   }

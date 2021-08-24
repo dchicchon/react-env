@@ -6,7 +6,7 @@ const fs = require("fs");
 const configFile = path.join(path.dirname(__filename), "../lib/config.json");
 const rawData = fs.readFileSync(configFile);
 const config: Config = JSON.parse(rawData);
-const env: Object = config[config.current];
+const env: Object = config.envs[config.current];
 const flag: string = process.argv[2];
 // Check for flags
 if (flag) {

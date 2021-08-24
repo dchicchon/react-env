@@ -3,16 +3,15 @@
 Use Create React App only once! Then you are able to get any `src` folder and run it on a root React App.
 
 # Installation
+
 ```console
 npm i -g @dchicchon/react-env
 ```
 
-
-
-
-
 # Config Setup
+
 This is an example of how the config is setup
+
 ```json
 {
   "current": "base",
@@ -34,9 +33,9 @@ This is an example of how the config is setup
         "nodemon": "^2.0.12"
       }
     }
+    // additional envs can be added here
   }
 }
-
 ```
 
 # Usage
@@ -56,6 +55,7 @@ react-env-run;
 ```
 
 Checking current config
+
 ```console
 // this will check your current environment config
 react-env-config
@@ -64,6 +64,7 @@ react-env-config -envs
 ```
 
 Install dependencies to your root react app from anywhere
+
 ```console
 // have root install the dependencies in the current env
 react-env-install
@@ -76,6 +77,7 @@ react-env-install -dev axios
 ```
 
 Switch or create a new environment
+
 ```console
 // if 'test' does not exist, it will create a new environment
 react-env-switch test

@@ -4,11 +4,7 @@
   "description": "Create a React Environment similar to Conda Env. No need to constantly create multiple create react apps",
   "main": "index.js",
   "bin": {
-    "react-env-root": "bin/index.js",
-    "react-env-run": "bin/run.js",
-    "react-env-install": "bin/install.js",
-    "react-env-config": "bin/config.js",
-    "react-env-switch": "bin/switch-env.js"
+    "react-env": "bin/index.js"
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -26,6 +22,7 @@
     "shelljs": "^0.8.4"
   },
   "devDependencies": {
-    "@types/node": "^16.7.1"
+    "@types/node": "^16.7.1",
+    "@types/shelljs": "^0.8.9"
   }
 }

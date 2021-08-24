@@ -6,7 +6,9 @@
   "bin": {
     "react-env-root": "bin/index.js",
     "react-env-run": "bin/run.js",
-    "react-env-list": "bin/list.js"
+    "react-env-install": "bin/install.js",
+    "react-env-config": "bin/config.js",
+    "react-env-switch": "bin/switch-env.js"
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -19,6 +21,11 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@tsconfig/node12": "^1.0.9",
+    "nodemon": "^2.0.12",
     "shelljs": "^0.8.4"
+  },
+  "devDependencies": {
+    "@types/node": "^16.7.1"
   }
 }

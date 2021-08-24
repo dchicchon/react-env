@@ -1,0 +1,11 @@
+{
+    "extends": "@tsconfig/node12/tsconfig.json",
+
+    "compilerOptions": {
+      "removeComments": true,
+      "preserveConstEnums": true
+
+    },
+    "include": ["tsBin"],
+    "exclude": ["node_modules","interfaces"]
+  }

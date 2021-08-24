@@ -1,4 +1,5 @@
 #! /usr/bin/env node
+import { Config } from '../interfaces/Types'
 const fs = require("fs");
 const shell = require("shelljs");
 const path = require("path");
@@ -6,10 +7,10 @@ const configFile = path.join(path.dirname(__filename), "../lib/config.json");
 
 // Install to root
 const rawData = fs.readFileSync(configFile);
-const config = JSON.parse(rawData);
+const config: Config = JSON.parse(rawData);
 const env = config.envs[config.current];
 shell.cd(env.root); // navigate to root to install items there
-const flag = process.argv[2];
+const flag: string = process.argv[2];
 if (process.argv.length === 2) {
     // install both dependencies and devDependencies from config -> root
     for (const dep in env.dependencies) {

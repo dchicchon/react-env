@@ -3,9 +3,10 @@
 
     "compilerOptions": {
       "removeComments": true,
-      "preserveConstEnums": true
-
+      "preserveConstEnums": true,
+      "outDir": ".",
+      "rootDir": "./src"
     },
-    "include": ["tsbin"],
-    "exclude": ["node_modules"]
+    "include": ["src"],
+    "exclude": ["node_modules","interfaces"]
   }

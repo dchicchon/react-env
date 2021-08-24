@@ -5,7 +5,6 @@ const fs = require("fs");
 const configFile = path.join(path.dirname(__filename), "../lib/config.json");
 const currentDirectory = process.cwd(); // directory where we run command
 console.log(`Saving ${currentDirectory} as root`);
-
 const rawData = fs.readFileSync(configFile);
 const config: Config = JSON.parse(rawData); // get config
 const env = config.envs[config.current]; // select current env

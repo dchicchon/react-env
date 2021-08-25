@@ -5,11 +5,14 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const chalk_1 = __importDefault(require("chalk"));
-const { root, run, config, uninstallEnv, installEnv, switchEnv, deleteEnv } = require('./commands');
+const { src, root, run, config, uninstallEnv, installEnv, switchEnv, deleteEnv, reset } = require('./commands');
 const command = process.argv[2];
 switch (command) {
     case 'root':
         root();
+        break;
+    case 'source':
+        src();
         break;
     case 'run':
         run();
@@ -28,6 +31,9 @@ switch (command) {
         break;
     case 'delete':
         deleteEnv();
+        break;
+    case "reset":
+        reset();
         break;
     default:
         console.log(chalk_1.default.underline.cyan(`\nReact-Env: Creating Multiple React Environments\n\n`) +

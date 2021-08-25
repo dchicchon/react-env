@@ -26,15 +26,28 @@ const root = () => {
             console.error(err);
     });
 };
-const run = () => {
-    const srcDirectory = process.cwd();
-    console.log(chalk_1.default.cyan(`Running ${srcDirectory} at root`));
+const src = () => {
+    const newSource = process.cwd();
+    console.log(chalk_1.default.cyan(`Sourcing ${newSource}`));
     const rawData = fs_1.default.readFileSync(configFile);
     const config = JSON.parse(rawData.toString());
-    const root = config.envs[config.current].root;
-    shelljs_1.default.cp("-R", process.cwd(), root + "/src");
+    const env = config.envs[config.current];
+    env.src = newSource;
+    const data = JSON.stringify(config);
+    fs_1.default.writeFile(configFile, data, "utf8", (err) => {
+        if (err)
+            console.error(err);
+    });
+};
+const run = () => {
+    const rawData = fs_1.default.readFileSync(configFile);
+    const config = JSON.parse(rawData.toString());
+    const { src } = config.envs[config.current];
+    const { root } = config.envs[config.current];
+    console.log(chalk_1.default.cyan(`Running source:${src} at root:${root}`));
+    shelljs_1.default.cp("-R", src, root + "/src");
     shelljs_1.default.cd(root);
-    shelljs_1.default.exec("npm start");
+    shelljs_1.default.exec("npm run start");
 };
 const config = () => {
     const rawData = fs_1.default.readFileSync(configFile);
@@ -177,6 +190,7 @@ const switchEnv = () => {
         console.log(chalk_1.default.cyan(`Creating new environment:${newEnv}`));
         const env = {
             root: "",
+            src: "",
             dependencies: {},
             devDependencies: {},
         };
@@ -221,12 +235,34 @@ const deleteEnv = () => {
             console.error(err);
     });
 };
+const reset = () => {
+    console.log(chalk_1.default.cyan("Resetting Config"));
+    const rawData = fs_1.default.readFileSync(configFile);
+    const config = JSON.parse(rawData.toString());
+    for (const env in config.envs) {
+        delete config.envs[env];
+    }
+    config.current = 'base';
+    config.envs["base"] = {
+        root: '',
+        src: '',
+        dependencies: {},
+        devDependencies: {}
+    };
+    const data = JSON.stringify(config);
+    fs_1.default.writeFile(configFile, data, "utf8", (err) => {
+        if (err)
+            console.error(err);
+    });
+};
 module.exports = {
     root,
     run,
+    src,
     config,
     installEnv,
     uninstallEnv,
     switchEnv,
-    deleteEnv
+    deleteEnv,
+    reset
 };

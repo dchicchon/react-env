@@ -1,10 +1,6 @@
 {
   "current": "base",
   "envs": {
-    "base": {
-      "root": "",
-      "dependencies": {},
-      "devDependencies": {}
-    }
+    "base": { "root": "", "src": "", "dependencies": {}, "devDependencies": {} }
   }
 }

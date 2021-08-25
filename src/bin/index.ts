@@ -2,13 +2,16 @@
 
 import chalk from "chalk";
 
-const { root, run, config, uninstallEnv, installEnv, switchEnv, deleteEnv } = require('./commands')
+const { src, root, run, config, uninstallEnv, installEnv, switchEnv, deleteEnv, reset } = require('./commands')
 // Run all commands by here
 const command = process.argv[2]
 switch (command) {
     case 'root':
         root()
         break;
+    case 'source':
+        src()
+        break
     case 'run':
         run()
         break;
@@ -26,6 +29,9 @@ switch (command) {
         break;
     case 'delete':
         deleteEnv()
+        break;
+    case "reset":
+        reset()
         break;
     default:
         console.log(

@@ -8,15 +8,23 @@ import chalk from 'chalk';
 const configFile = path.join(path.dirname(__filename), "../lib/config.json");
 
 const root = () => {
+
+    // Maybe somewhere here we can tell the package json in our root
+    // to watch for our source folder
+
     const currentDirectory = process.cwd(); // directory where we run command
     console.log(chalk.cyan(`Saving ${currentDirectory} as root`));
+
+    // get current env 
     const rawData = fs.readFileSync(configFile);
-    const config: Config = JSON.parse(rawData.toString()); // get config
-    const env = config.envs[config.current]; // select current env
+    const config: Config = JSON.parse(rawData.toString());
+    const env = config.envs[config.current];
+
     // get packages in current directory
     const rootJSON = path.join(currentDirectory, "/package.json");
     const rootFile = fs.readFileSync(rootJSON);
 
+    // setup keys in environment
     env.root = currentDirectory;
     env.dependencies = JSON.parse(rootFile.toString()).dependencies;
     env.devDependencies = JSON.parse(rootFile.toString()).devDependencies;
@@ -29,24 +37,36 @@ const root = () => {
 
 }
 
+const src = () => {
+    const newSource = process.cwd()
+    console.log(chalk.cyan(`Sourcing ${newSource}`))
+    const rawData = fs.readFileSync(configFile);
+    const config: Config = JSON.parse(rawData.toString());
+    const env = config.envs[config.current]
+    env.src = newSource
+    const data = JSON.stringify(config);
+    fs.writeFile(configFile, data, "utf8", (err) => {
+        if (err) console.error(err);
+    });
+
+}
+
 const run = () => {
-    const srcDirectory = process.cwd(); // hopefully a src directory
-    console.log(chalk.cyan(`Running ${srcDirectory} at root`));
     // Lets read our config file
     const rawData = fs.readFileSync(configFile);
     const config: Config = JSON.parse(rawData.toString());
-    const root = config.envs[config.current].root;
+    const { src } = config.envs[config.current]
+    const { root } = config.envs[config.current];
+    console.log(chalk.cyan(`Running source:${src} at root:${root}`));
 
     // Lets use npm watch to check if anything changes in our 'src' directory
+    // this is the biggest issue with the package
 
     // Copy src folder to our root folder and place it into a folder called '/src'
-    shell.cp("-R", process.cwd(), root + "/src");
-    // Change directory to our root
+    // Maybe I don't have to do this later on, try making a reference to our source in our root
+    shell.cp("-R", src, root + "/src");
     shell.cd(root);
-    // Run our Root React App
-    shell.exec("npm start");
-
-
+    shell.exec("npm run start");
 }
 
 const config = () => {
@@ -201,6 +221,7 @@ const switchEnv = () => {
         console.log(chalk.cyan(`Creating new environment:${newEnv}`))
         const env = {
             root: "",
+            src: "",
             dependencies: {},
             devDependencies: {},
         };
@@ -243,12 +264,39 @@ const deleteEnv = () => {
     });
 }
 
+const reset = () => {
+    console.log(chalk.cyan("Resetting Config"))
+    // get current env 
+    const rawData = fs.readFileSync(configFile);
+    const config: Config = JSON.parse(rawData.toString());
+
+    // Remove all other configs
+    for (const env in config.envs) {
+        delete config.envs[env]
+    }
+    config.current = 'base'
+    config.envs["base"] = {
+        root: '',
+        src: '',
+        dependencies: {},
+        devDependencies: {}
+    }
+
+    // Package updated config in config.j
+    const data = JSON.stringify(config);
+    fs.writeFile(configFile, data, "utf8", (err) => {
+        if (err) console.error(err);
+    });
+}
+
 module.exports = {
     root,
     run,
+    src,
     config,
     installEnv,
     uninstallEnv,
     switchEnv,
-    deleteEnv
+    deleteEnv,
+    reset
 }

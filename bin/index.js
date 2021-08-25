@@ -36,7 +36,7 @@ switch (command) {
         commands_1.Commands.reset();
         break;
     default:
-        console.log(chalk_1.default.underline.cyan(`\nReact-Env: Creating Multiple React Environments\n\n`) +
+        commands_1.Commands.log(chalk_1.default.underline.cyan(`\nReact-Env: Creating Multiple React Environments\n\n`) +
             chalk_1.default.cyan(`Try one of the following commands:\n` +
                 chalk_1.default.green(`root`) + `: sets current environment root \n` +
                 chalk_1.default.green(`run`) + `: runs the current src directory \n` +

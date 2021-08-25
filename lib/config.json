@@ -1,6 +1,1 @@
-{
-  "current": "base",
-  "envs": {
-    "base": { "root": "", "src": "", "dependencies": {}, "devDependencies": {} }
-  }
-}
+{"current":"base","envs":{"base":{"root":"","src":"","dependencies":{},"devDependencies":{}}}}

@@ -2,7 +2,7 @@
 
 import chalk from "chalk";
 import { Commands } from './commands'
-// const { src, root, run, config, uninstallEnv, installEnv, switchEnv, deleteEnv, reset } = require('./commands')
+
 // Run all commands by here
 const command = process.argv[2]
 switch (command) {
@@ -34,7 +34,7 @@ switch (command) {
         Commands.reset()
         break;
     default:
-        console.log(
+        Commands.log(
             chalk.underline.cyan(`\nReact-Env: Creating Multiple React Environments\n\n`) +
             chalk.cyan(
                 `Try one of the following commands:\n` +

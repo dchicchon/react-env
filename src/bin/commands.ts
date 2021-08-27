@@ -1,44 +1,94 @@
 #! /usr/bin/env node
 import { Config } from '../interfaces/Types'
-import fs from 'fs'
-import shell from 'shelljs'
-import path from 'path'
-import chalk from 'chalk';
+import { readFileSync, writeFile } from 'fs'
 
-const configFile = path.join(path.dirname(__filename), "../lib/config.json");
+// Maybe bring in fs
+
+import { exec, echo, cd, cp, cat, ShellString, sort } from 'shelljs'
+import { join, dirname } from 'path'
+import { cyan, yellow } from 'chalk'
+
+const configPath = join(dirname(__filename), "../lib/config.json");
+// const cracoPath = join(dirname(__filename), "../lib/craco.config.json")
+const log = console.log
+
+// Helper Functions
+const addCracoFile = () => {
+    log("Adding Craco File")
+    //get current source
+    const configFile = readFileSync(configPath);
+    const config: Config = JSON.parse(configFile.toString());
+    const env = config.envs[config.current];
+    const file = `
+    cat <<EOF >craco.config.js
+        module.exports = {
+                webpack: {
+                    configure: (webpackConfig) => {
+                        // This needs to be updated everytime we set a root/source or on run?
+                        // Need to specify the source every time we root
+                        webpackConfig.entry = ${env.src + '\\index.js'}
+                        return webpackConfig;
+                    },
+                },
+                babel: {
+                    presets: ["@babel/preset-react"],
+                },
+            };
+    EOF
+        `
+    exec(file)
+    log("Done adding craco.config.js")
+}
+
 export module Commands {
-    export const log = console.log
 
     export const root = () => {
-        try {
-            // Maybe somewhere here we can tell the package json in our root
-            // to watch for our source folder
 
-            const currentDirectory = process.cwd(); // directory where we run command
-            log(chalk.cyan(`Saving ${currentDirectory} as root`));
+        try {
+            const rootDirectory = process.cwd(); // directory where we run command
+            log(cyan(`Saving ${rootDirectory} as root`));
+            // Save craco here
 
             // get current env 
-            const rawData = fs.readFileSync(configFile);
-            const config: Config = JSON.parse(rawData.toString());
+            const configFile = readFileSync(configPath);
+            const config: Config = JSON.parse(configFile.toString());
             const env = config.envs[config.current];
 
-            // get packages in current directory
-            const rootJSON = path.join(currentDirectory, '/package.json')
-            const rootFile = fs.readFileSync(rootJSON);
 
-            // setup keys in environment
-            env.root = currentDirectory;
-            env.dependencies = JSON.parse(rootFile.toString()).dependencies;
-            env.devDependencies = JSON.parse(rootFile.toString()).devDependencies;
+            // log(cyan("Rewiring React App.."))
+            // exec('npm install --save-dev react-app-rewired react-app-rewire-alias')
+
+            // writeOverride(rootDirectory)
+
+            // get packages in current directory
+            const rootPath = join(rootDirectory, '\package.json')
+            const rootFile = readFileSync(rootPath);
+            const rootJSON = JSON.parse(rootFile.toString())
+
+            exec('npm i @craco/craco')
+            rootJSON.scripts = {
+                "start": "craco start",
+                "build": "craco build",
+                "test": "craco test",
+            }
+
+            env.root = rootDirectory;
+            env.dependencies = rootJSON.dependencies;
+            env.devDependencies = rootJSON.devDependencies;
+
+            const rootData = JSON.stringify(rootJSON)
+            writeFile(rootPath, rootData, 'utf8', (err) => {
+                err && console.error(err)
+            })
 
             // Package updated config in config.json
             const data = JSON.stringify(config);
-            fs.writeFile(configFile, data, "utf8", (err) => {
-                if (err) console.error(err);
+            writeFile(configPath, data, "utf8", (err) => {
+                err && console.error(err);
             });
         }
         catch (error) {
-            log(chalk.yellow("There was an error in rooting your React App. Please ensure this is a valid react app"))
+            log(yellow("There was an error in rooting your React App. Please ensure this is a valid react app"))
             // error(error)
         }
     }
@@ -46,13 +96,13 @@ export module Commands {
     export const src = () => {
         try {
             const newSource = process.cwd()
-            log(chalk.cyan(`Sourcing ${newSource}`))
-            const rawData = fs.readFileSync(configFile);
+            log(cyan(`Sourcing ${newSource}`))
+            const rawData = readFileSync(configPath);
             const config: Config = JSON.parse(rawData.toString());
             const env = config.envs[config.current]
             env.src = newSource
             const data = JSON.stringify(config);
-            fs.writeFile(configFile, data, "utf8", (err) => {
+            writeFile(configPath, data, "utf8", (err) => {
                 if (err) console.error(err);
             });
         } catch (error) {
@@ -63,24 +113,18 @@ export module Commands {
 
     export const run = () => {
         // Lets read our config file
-        const rawData = fs.readFileSync(configFile);
+        const rawData = readFileSync(configPath);
         const config: Config = JSON.parse(rawData.toString());
         const { src } = config.envs[config.current]
         const { root } = config.envs[config.current];
-        log(chalk.cyan(`Running source:${src} at root:${root}`));
-
-        // Lets use npm watch to check if anything changes in our 'src' directory
-        // this is the biggest issue with the package
-
-        // Copy src folder to our root folder and place it into a folder called '/src'
-        // Maybe I don't have to do this later on, try making a reference to our source in our root
-        shell.cp("-R", src, root + "/src");
-        shell.cd(root);
-        shell.exec("npm run start");
+        log(cyan(`Running source:${src} at root:${root}`));
+        cd(root);
+        addCracoFile()
+        exec("npm start");
     }
 
     export const config = () => {
-        const rawData = fs.readFileSync(configFile);
+        const rawData = readFileSync(configPath);
         const config: Config = JSON.parse(rawData.toString());
         const env = config.envs[config.current];
         const flag: string = process.argv[3];
@@ -90,45 +134,45 @@ export module Commands {
             switch (flag) {
                 case "-envs":
                     let list = Object.keys(config.envs).filter((key) => key !== "current");
-                    log(chalk.cyan("List of envs"));
-                    list.forEach((env) => log(chalk.cyan(env)));
+                    log(cyan("List of envs"));
+                    list.forEach((env) => log(cyan(env)));
                     break;
             }
         } else {
-            log(chalk.cyan(`Current Config: ${config.current}`));
+            log(cyan(`Current Config: ${config.current}`));
             log(env);
         }
 
     }
 
     export const uninstallEnv = () => {
-        const rawData = fs.readFileSync(configFile);
+        const rawData = readFileSync(configPath);
         const config: Config = JSON.parse(rawData.toString());
         const env = config.envs[config.current];
-        shell.cd(env.root); // navigate to root to uninstall items there
+        cd(env.root); // navigate to root to uninstall items there
         // Dont need to worry about flag, just see how many args there are
         if (process.argv.length === 3) {
-            log(chalk.cyan("Please specify what you would like to uninstall. Use -all to delete all, or simply list packages to delete"))
+            log(cyan("Please specify what you would like to uninstall. Use -all to delete all, or simply list packages to delete"))
             // uninstall everything in root env
         }
         else if (process.argv[3] === '-all') {
-            log(chalk.cyan("Uninstalling all packages"))
+            log(cyan("Uninstalling all packages"))
             // look at config to see what to uninstall
             for (let i = 0; i < Object.keys(env.dependencies).length; i++) {
                 const dep = Object.keys(env.dependencies)[i]
-                log(chalk.cyan(`Uninstalling package ${dep}`))
-                shell.exec(`npm uninstall ${dep}`)
+                log(cyan(`Uninstalling package ${dep}`))
+                exec(`npm uninstall ${dep}`)
             }
             for (let i = 0; i < Object.keys(env.devDependencies).length; i++) {
                 const dep = Object.keys(env.devDependencies)[i]
-                log(chalk.cyan(`Uninstalling package ${dep}`))
-                shell.exec(`npm uninstall ${dep}`)
+                log(cyan(`Uninstalling package ${dep}`))
+                exec(`npm uninstall ${dep}`)
             }
 
             env.dependencies = {}
             env.devDependencies = {}
             const data = JSON.stringify(config);
-            fs.writeFile(configFile, data, "utf8", (err) => {
+            writeFile(configPath, data, "utf8", (err) => {
                 if (err) console.error(err);
             });
 
@@ -137,8 +181,8 @@ export module Commands {
             // only install these packages
             for (let i = 3; i < process.argv.length; i++) {
                 try {
-                    log(chalk.cyan(`Uninstalling package ${process.argv[i]}`))
-                    shell.exec(`npm uninstall ${process.argv[i]}`)
+                    log(cyan(`Uninstalling package ${process.argv[i]}`))
+                    exec(`npm uninstall ${process.argv[i]}`)
                     env.dependencies[process.argv[i]] ? delete env.dependencies[process.argv[i]] : delete env.devDependencies[process.argv[i]]
                 } catch (error) {
                     console.error(error)
@@ -147,7 +191,7 @@ export module Commands {
 
             // Make sure to add all packages here
             const data = JSON.stringify(config);
-            fs.writeFile(configFile, data, "utf8", (err) => {
+            writeFile(configPath, data, "utf8", (err) => {
                 if (err) console.error(err);
             });
         }
@@ -157,62 +201,62 @@ export module Commands {
 
     export const installEnv = () => {
         // Install to root
-        const rawData = fs.readFileSync(configFile);
+        const rawData = readFileSync(configPath);
         const config: Config = JSON.parse(rawData.toString());
         const env = config.envs[config.current];
-        shell.cd(env.root); // navigate to root to install items there
+        cd(env.root); // navigate to root to install items there
         const flag: string = process.argv[3];
         if (env.root === '') {
-            log(chalk.cyan("You must root an reach app before installing any dependencies"))
+            log(cyan("You must root an reach app before installing any dependencies"))
             return
         }
         if (process.argv.length === 3) {
-            log(chalk.cyan("Installing Environment Packages"))
+            log(cyan("Installing Environment Packages"))
             // install both dependencies and devDependencies from config -> root
             for (const dep in env.dependencies) {
-                log(chalk.cyan(`Installing ${dep}`))
-                shell.exec(`npm install ${dep}`);
+                log(cyan(`Installing ${dep}`))
+                exec(`npm install ${dep}`);
             }
             for (const dep in env.devDependencies) {
-                log(chalk.cyan(`Installing ${dep}`))
-                shell.exec(`npm install ${dep} --save-dev`);
+                log(cyan(`Installing ${dep}`))
+                exec(`npm install ${dep} --save-dev`);
             }
         } else if (flag === "-dev") {
             for (let i = 4; i < process.argv.length; i++) {
                 let dep = process.argv[i];
-                log(chalk.cyan(`Installing Package ${dep} in dev`))
+                log(cyan(`Installing Package ${dep} in dev`))
                 try {
-                    shell.exec(`npm install ${dep} --save-dev`);
+                    exec(`npm install ${dep} --save-dev`);
                     env.dependencies[dep] && delete env.dependencies[dep]
                 } catch (error) {
                     console.error(error);
                 }
             }
 
-            const rootJSON = path.join(process.cwd(), "/package.json");
-            const rootFile = fs.readFileSync(rootJSON);
+            const rootJSON = join(process.cwd(), "/package.json");
+            const rootFile = readFileSync(rootJSON);
             env.devDependencies = JSON.parse(rootFile.toString()).devDependencies;
             const data = JSON.stringify(config);
-            fs.writeFile(configFile, data, "utf8", (err) => {
+            writeFile(configPath, data, "utf8", (err) => {
                 if (err) console.error(err);
             });
         } else {
 
             for (let i = 3; i < process.argv.length; i++) {
                 let dep = process.argv[i];
-                log(chalk.cyan(`Installing Package ${dep}`))
+                log(cyan(`Installing Package ${dep}`))
                 try {
-                    shell.exec(`npm install ${dep}`);
+                    exec(`npm install ${dep}`);
                     env.devDependencies[dep] && delete env.devDependencies[dep]
                 } catch (error) {
                     console.error(error);
                 }
             }
-            const rootJSON = path.join(process.cwd(), "/package.json");
-            const rootFile = fs.readFileSync(rootJSON);
+            const rootJSON = join(process.cwd(), "/package.json");
+            const rootFile = readFileSync(rootJSON);
             env.dependencies = JSON.parse(rootFile.toString()).dependencies;
             const data = JSON.stringify(config);
-            fs.writeFile(configFile, data, "utf8", (err) => {
+            writeFile(configPath, data, "utf8", (err) => {
                 if (err) console.error(err);
             });
         }
@@ -220,15 +264,15 @@ export module Commands {
 
     export const switchEnv = () => {
         const newEnv: string = process.argv[3];
-        const rawData = fs.readFileSync(configFile);
+        const rawData = readFileSync(configPath);
         const config: Config = JSON.parse(rawData.toString());
         if (config.current === newEnv) {
-            log(chalk.cyan(`Already on environment:${newEnv}`))
+            log(cyan(`Already on environment:${newEnv}`))
             return
         }
         // If the env we switched to is not in our config.envs, create a new env
         if (config.envs[newEnv] === undefined) {
-            log(chalk.cyan(`Creating new environment:${newEnv}`))
+            log(cyan(`Creating new environment:${newEnv}`))
             const env = {
                 root: "",
                 src: "",
@@ -237,11 +281,11 @@ export module Commands {
             };
             config.envs[newEnv] = env
         } else {
-            log(chalk.cyan(`Switching to environment: ${newEnv}`))
+            log(cyan(`Switching to environment: ${newEnv}`))
         }
         config.current = newEnv
         const data = JSON.stringify(config);
-        fs.writeFile(configFile, data, "utf8", (err) => {
+        writeFile(configPath, data, "utf8", (err) => {
             if (err) console.error(err);
         });
 
@@ -249,35 +293,35 @@ export module Commands {
 
     export const deleteEnv = () => {
         if (process.argv.length === 3) {
-            log(chalk.cyan("You must input envs to delete"))
+            log(cyan("You must input envs to delete"))
             return
         }
-        const rawData = fs.readFileSync(configFile);
+        const rawData = readFileSync(configPath);
         const config: Config = JSON.parse(rawData.toString());
         if (Object.keys(config.envs).length === 0) {
-            log(chalk.cyan("No environments detected in config"))
+            log(cyan("No environments detected in config"))
         }
         for (let i = 3; i < process.argv.length; i++) {
             const env: string = process.argv[i];
-            log(chalk.cyan(`Deleting environment: ${env}`))
+            log(cyan(`Deleting environment: ${env}`))
             if (config.envs[env]) {
                 delete config.envs[env]
                 if (config.current === env) config.current = ''
             } else {
-                log(chalk.cyan('Environment not found. Skipping...'))
+                log(cyan('Environment not found. Skipping...'))
                 continue
             }
         }
         const data = JSON.stringify(config);
-        fs.writeFile(configFile, data, "utf8", (err) => {
+        writeFile(configPath, data, "utf8", (err) => {
             if (err) console.error(err);
         });
     }
 
     export const reset = () => {
-        log(chalk.cyan("Resetting Config"))
+        log(cyan("Resetting Config"))
         // get current env 
-        const rawData = fs.readFileSync(configFile);
+        const rawData = readFileSync(configPath);
         const config: Config = JSON.parse(rawData.toString());
 
         // Remove all other configs
@@ -294,7 +338,7 @@ export module Commands {
 
         // Package updated config in config.j
         const data = JSON.stringify(config);
-        fs.writeFile(configFile, data, "utf8", (err) => {
+        writeFile(configPath, data, "utf8", (err) => {
             if (err) console.error(err);
         });
     }

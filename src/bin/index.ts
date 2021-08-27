@@ -34,7 +34,7 @@ switch (command) {
         Commands.reset()
         break;
     default:
-        Commands.log(
+        console.log(
             chalk.underline.cyan(`\nReact-Env: Creating Multiple React Environments\n\n`) +
             chalk.cyan(
                 `Try one of the following commands:\n` +

@@ -1,70 +1,102 @@
 #! /usr/bin/env node
 "use strict";
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Commands = void 0;
-const fs_1 = __importDefault(require("fs"));
-const shelljs_1 = __importDefault(require("shelljs"));
-const path_1 = __importDefault(require("path"));
-const chalk_1 = __importDefault(require("chalk"));
-const configFile = path_1.default.join(path_1.default.dirname(__filename), "../lib/config.json");
+const fs_1 = require("fs");
+const shelljs_1 = require("shelljs");
+const path_1 = require("path");
+const chalk_1 = require("chalk");
+const configPath = path_1.join(path_1.dirname(__filename), "../lib/config.json");
+const log = console.log;
+const addCracoFile = () => {
+    log("Adding Craco File");
+    const configFile = fs_1.readFileSync(configPath);
+    const config = JSON.parse(configFile.toString());
+    const env = config.envs[config.current];
+    const file = `
+    cat <<EOF >craco.config.js
+        module.exports = {
+                webpack: {
+                    configure: (webpackConfig) => {
+                        // This needs to be updated everytime we set a root/source or on run?
+                        // Need to specify the source every time we root
+                        webpackConfig.entry = ${env.src + '\\index.js'}
+                        return webpackConfig;
+                    },
+                },
+                babel: {
+                    presets: ["@babel/preset-react"],
+                },
+            };
+    EOF
+        `;
+    shelljs_1.exec(file);
+    log("Done adding craco.config.js");
+};
 var Commands;
 (function (Commands) {
-    Commands.log = console.log;
     Commands.root = () => {
         try {
-            const currentDirectory = process.cwd();
-            Commands.log(chalk_1.default.cyan(`Saving ${currentDirectory} as root`));
-            const rawData = fs_1.default.readFileSync(configFile);
-            const config = JSON.parse(rawData.toString());
+            const rootDirectory = process.cwd();
+            log(chalk_1.cyan(`Saving ${rootDirectory} as root`));
+            const configFile = fs_1.readFileSync(configPath);
+            const config = JSON.parse(configFile.toString());
             const env = config.envs[config.current];
-            const rootJSON = path_1.default.join(currentDirectory, '/package.json');
-            const rootFile = fs_1.default.readFileSync(rootJSON);
-            env.root = currentDirectory;
-            env.dependencies = JSON.parse(rootFile.toString()).dependencies;
-            env.devDependencies = JSON.parse(rootFile.toString()).devDependencies;
+            const rootPath = path_1.join(rootDirectory, '\package.json');
+            const rootFile = fs_1.readFileSync(rootPath);
+            const rootJSON = JSON.parse(rootFile.toString());
+            shelljs_1.exec('npm i @craco/craco');
+            rootJSON.scripts = {
+                "start": "craco start",
+                "build": "craco build",
+                "test": "craco test",
+            };
+            env.root = rootDirectory;
+            env.dependencies = rootJSON.dependencies;
+            env.devDependencies = rootJSON.devDependencies;
+            const rootData = JSON.stringify(rootJSON);
+            fs_1.writeFile(rootPath, rootData, 'utf8', (err) => {
+                err && console.error(err);
+            });
             const data = JSON.stringify(config);
-            fs_1.default.writeFile(configFile, data, "utf8", (err) => {
-                if (err)
-                    console.error(err);
+            fs_1.writeFile(configPath, data, "utf8", (err) => {
+                err && console.error(err);
             });
         }
         catch (error) {
-            Commands.log(chalk_1.default.yellow("There was an error in rooting your React App. Please ensure this is a valid react app"));
+            log(chalk_1.yellow("There was an error in rooting your React App. Please ensure this is a valid react app"));
         }
     };
     Commands.src = () => {
         try {
             const newSource = process.cwd();
-            Commands.log(chalk_1.default.cyan(`Sourcing ${newSource}`));
-            const rawData = fs_1.default.readFileSync(configFile);
+            log(chalk_1.cyan(`Sourcing ${newSource}`));
+            const rawData = fs_1.readFileSync(configPath);
             const config = JSON.parse(rawData.toString());
             const env = config.envs[config.current];
             env.src = newSource;
             const data = JSON.stringify(config);
-            fs_1.default.writeFile(configFile, data, "utf8", (err) => {
+            fs_1.writeFile(configPath, data, "utf8", (err) => {
                 if (err)
                     console.error(err);
             });
         }
         catch (error) {
-            Commands.log();
+            log();
         }
     };
     Commands.run = () => {
-        const rawData = fs_1.default.readFileSync(configFile);
+        const rawData = fs_1.readFileSync(configPath);
         const config = JSON.parse(rawData.toString());
         const { src } = config.envs[config.current];
         const { root } = config.envs[config.current];
-        Commands.log(chalk_1.default.cyan(`Running source:${src} at root:${root}`));
-        shelljs_1.default.cp("-R", src, root + "/src");
-        shelljs_1.default.cd(root);
-        shelljs_1.default.exec("npm run start");
+        log(chalk_1.cyan(`Running source:${src} at root:${root}`));
+        shelljs_1.cd(root);
+        addCracoFile();
+        shelljs_1.exec("npm start");
     };
     Commands.config = () => {
-        const rawData = fs_1.default.readFileSync(configFile);
+        const rawData = fs_1.readFileSync(configPath);
         const config = JSON.parse(rawData.toString());
         const env = config.envs[config.current];
         const flag = process.argv[3];
@@ -72,40 +104,40 @@ var Commands;
             switch (flag) {
                 case "-envs":
                     let list = Object.keys(config.envs).filter((key) => key !== "current");
-                    Commands.log(chalk_1.default.cyan("List of envs"));
-                    list.forEach((env) => Commands.log(chalk_1.default.cyan(env)));
+                    log(chalk_1.cyan("List of envs"));
+                    list.forEach((env) => log(chalk_1.cyan(env)));
                     break;
             }
         }
         else {
-            Commands.log(chalk_1.default.cyan(`Current Config: ${config.current}`));
-            Commands.log(env);
+            log(chalk_1.cyan(`Current Config: ${config.current}`));
+            log(env);
         }
     };
     Commands.uninstallEnv = () => {
-        const rawData = fs_1.default.readFileSync(configFile);
+        const rawData = fs_1.readFileSync(configPath);
         const config = JSON.parse(rawData.toString());
         const env = config.envs[config.current];
-        shelljs_1.default.cd(env.root);
+        shelljs_1.cd(env.root);
         if (process.argv.length === 3) {
-            Commands.log(chalk_1.default.cyan("Please specify what you would like to uninstall. Use -all to delete all, or simply list packages to delete"));
+            log(chalk_1.cyan("Please specify what you would like to uninstall. Use -all to delete all, or simply list packages to delete"));
         }
         else if (process.argv[3] === '-all') {
-            Commands.log(chalk_1.default.cyan("Uninstalling all packages"));
+            log(chalk_1.cyan("Uninstalling all packages"));
             for (let i = 0; i < Object.keys(env.dependencies).length; i++) {
                 const dep = Object.keys(env.dependencies)[i];
-                Commands.log(chalk_1.default.cyan(`Uninstalling package ${dep}`));
-                shelljs_1.default.exec(`npm uninstall ${dep}`);
+                log(chalk_1.cyan(`Uninstalling package ${dep}`));
+                shelljs_1.exec(`npm uninstall ${dep}`);
             }
             for (let i = 0; i < Object.keys(env.devDependencies).length; i++) {
                 const dep = Object.keys(env.devDependencies)[i];
-                Commands.log(chalk_1.default.cyan(`Uninstalling package ${dep}`));
-                shelljs_1.default.exec(`npm uninstall ${dep}`);
+                log(chalk_1.cyan(`Uninstalling package ${dep}`));
+                shelljs_1.exec(`npm uninstall ${dep}`);
             }
             env.dependencies = {};
             env.devDependencies = {};
             const data = JSON.stringify(config);
-            fs_1.default.writeFile(configFile, data, "utf8", (err) => {
+            fs_1.writeFile(configPath, data, "utf8", (err) => {
                 if (err)
                     console.error(err);
             });
@@ -113,8 +145,8 @@ var Commands;
         else {
             for (let i = 3; i < process.argv.length; i++) {
                 try {
-                    Commands.log(chalk_1.default.cyan(`Uninstalling package ${process.argv[i]}`));
-                    shelljs_1.default.exec(`npm uninstall ${process.argv[i]}`);
+                    log(chalk_1.cyan(`Uninstalling package ${process.argv[i]}`));
+                    shelljs_1.exec(`npm uninstall ${process.argv[i]}`);
                     env.dependencies[process.argv[i]] ? delete env.dependencies[process.argv[i]] : delete env.devDependencies[process.argv[i]];
                 }
                 catch (error) {
@@ -122,50 +154,50 @@ var Commands;
                 }
             }
             const data = JSON.stringify(config);
-            fs_1.default.writeFile(configFile, data, "utf8", (err) => {
+            fs_1.writeFile(configPath, data, "utf8", (err) => {
                 if (err)
                     console.error(err);
             });
         }
     };
     Commands.installEnv = () => {
-        const rawData = fs_1.default.readFileSync(configFile);
+        const rawData = fs_1.readFileSync(configPath);
         const config = JSON.parse(rawData.toString());
         const env = config.envs[config.current];
-        shelljs_1.default.cd(env.root);
+        shelljs_1.cd(env.root);
         const flag = process.argv[3];
         if (env.root === '') {
-            Commands.log(chalk_1.default.cyan("You must root an reach app before installing any dependencies"));
+            log(chalk_1.cyan("You must root an reach app before installing any dependencies"));
             return;
         }
         if (process.argv.length === 3) {
-            Commands.log(chalk_1.default.cyan("Installing Environment Packages"));
+            log(chalk_1.cyan("Installing Environment Packages"));
             for (const dep in env.dependencies) {
-                Commands.log(chalk_1.default.cyan(`Installing ${dep}`));
-                shelljs_1.default.exec(`npm install ${dep}`);
+                log(chalk_1.cyan(`Installing ${dep}`));
+                shelljs_1.exec(`npm install ${dep}`);
             }
             for (const dep in env.devDependencies) {
-                Commands.log(chalk_1.default.cyan(`Installing ${dep}`));
-                shelljs_1.default.exec(`npm install ${dep} --save-dev`);
+                log(chalk_1.cyan(`Installing ${dep}`));
+                shelljs_1.exec(`npm install ${dep} --save-dev`);
             }
         }
         else if (flag === "-dev") {
             for (let i = 4; i < process.argv.length; i++) {
                 let dep = process.argv[i];
-                Commands.log(chalk_1.default.cyan(`Installing Package ${dep} in dev`));
+                log(chalk_1.cyan(`Installing Package ${dep} in dev`));
                 try {
-                    shelljs_1.default.exec(`npm install ${dep} --save-dev`);
+                    shelljs_1.exec(`npm install ${dep} --save-dev`);
                     env.dependencies[dep] && delete env.dependencies[dep];
                 }
                 catch (error) {
                     console.error(error);
                 }
             }
-            const rootJSON = path_1.default.join(process.cwd(), "/package.json");
-            const rootFile = fs_1.default.readFileSync(rootJSON);
+            const rootJSON = path_1.join(process.cwd(), "/package.json");
+            const rootFile = fs_1.readFileSync(rootJSON);
             env.devDependencies = JSON.parse(rootFile.toString()).devDependencies;
             const data = JSON.stringify(config);
-            fs_1.default.writeFile(configFile, data, "utf8", (err) => {
+            fs_1.writeFile(configPath, data, "utf8", (err) => {
                 if (err)
                     console.error(err);
             });
@@ -173,20 +205,20 @@ var Commands;
         else {
             for (let i = 3; i < process.argv.length; i++) {
                 let dep = process.argv[i];
-                Commands.log(chalk_1.default.cyan(`Installing Package ${dep}`));
+                log(chalk_1.cyan(`Installing Package ${dep}`));
                 try {
-                    shelljs_1.default.exec(`npm install ${dep}`);
+                    shelljs_1.exec(`npm install ${dep}`);
                     env.devDependencies[dep] && delete env.devDependencies[dep];
                 }
                 catch (error) {
                     console.error(error);
                 }
             }
-            const rootJSON = path_1.default.join(process.cwd(), "/package.json");
-            const rootFile = fs_1.default.readFileSync(rootJSON);
+            const rootJSON = path_1.join(process.cwd(), "/package.json");
+            const rootFile = fs_1.readFileSync(rootJSON);
             env.dependencies = JSON.parse(rootFile.toString()).dependencies;
             const data = JSON.stringify(config);
-            fs_1.default.writeFile(configFile, data, "utf8", (err) => {
+            fs_1.writeFile(configPath, data, "utf8", (err) => {
                 if (err)
                     console.error(err);
             });
@@ -194,14 +226,14 @@ var Commands;
     };
     Commands.switchEnv = () => {
         const newEnv = process.argv[3];
-        const rawData = fs_1.default.readFileSync(configFile);
+        const rawData = fs_1.readFileSync(configPath);
         const config = JSON.parse(rawData.toString());
         if (config.current === newEnv) {
-            Commands.log(chalk_1.default.cyan(`Already on environment:${newEnv}`));
+            log(chalk_1.cyan(`Already on environment:${newEnv}`));
             return;
         }
         if (config.envs[newEnv] === undefined) {
-            Commands.log(chalk_1.default.cyan(`Creating new environment:${newEnv}`));
+            log(chalk_1.cyan(`Creating new environment:${newEnv}`));
             const env = {
                 root: "",
                 src: "",
@@ -211,47 +243,47 @@ var Commands;
             config.envs[newEnv] = env;
         }
         else {
-            Commands.log(chalk_1.default.cyan(`Switching to environment: ${newEnv}`));
+            log(chalk_1.cyan(`Switching to environment: ${newEnv}`));
         }
         config.current = newEnv;
         const data = JSON.stringify(config);
-        fs_1.default.writeFile(configFile, data, "utf8", (err) => {
+        fs_1.writeFile(configPath, data, "utf8", (err) => {
             if (err)
                 console.error(err);
         });
     };
     Commands.deleteEnv = () => {
         if (process.argv.length === 3) {
-            Commands.log(chalk_1.default.cyan("You must input envs to delete"));
+            log(chalk_1.cyan("You must input envs to delete"));
             return;
         }
-        const rawData = fs_1.default.readFileSync(configFile);
+        const rawData = fs_1.readFileSync(configPath);
         const config = JSON.parse(rawData.toString());
         if (Object.keys(config.envs).length === 0) {
-            Commands.log(chalk_1.default.cyan("No environments detected in config"));
+            log(chalk_1.cyan("No environments detected in config"));
         }
         for (let i = 3; i < process.argv.length; i++) {
             const env = process.argv[i];
-            Commands.log(chalk_1.default.cyan(`Deleting environment: ${env}`));
+            log(chalk_1.cyan(`Deleting environment: ${env}`));
             if (config.envs[env]) {
                 delete config.envs[env];
                 if (config.current === env)
                     config.current = '';
             }
             else {
-                Commands.log(chalk_1.default.cyan('Environment not found. Skipping...'));
+                log(chalk_1.cyan('Environment not found. Skipping...'));
                 continue;
             }
         }
         const data = JSON.stringify(config);
-        fs_1.default.writeFile(configFile, data, "utf8", (err) => {
+        fs_1.writeFile(configPath, data, "utf8", (err) => {
             if (err)
                 console.error(err);
         });
     };
     Commands.reset = () => {
-        Commands.log(chalk_1.default.cyan("Resetting Config"));
-        const rawData = fs_1.default.readFileSync(configFile);
+        log(chalk_1.cyan("Resetting Config"));
+        const rawData = fs_1.readFileSync(configPath);
         const config = JSON.parse(rawData.toString());
         for (const env in config.envs) {
             delete config.envs[env];
@@ -264,7 +296,7 @@ var Commands;
             devDependencies: {}
         };
         const data = JSON.stringify(config);
-        fs_1.default.writeFile(configFile, data, "utf8", (err) => {
+        fs_1.writeFile(configPath, data, "utf8", (err) => {
             if (err)
                 console.error(err);
         });

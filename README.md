@@ -100,6 +100,7 @@ Delete environments in config
 react-env delete test
 ```
 
+
 # Packages Used
 
 [ShellJS](https://github.com/shelljs/shelljs) - Shell commands
@@ -109,3 +110,7 @@ react-env delete test
 # Developed With
 
 [TypeScript](https://www.typescriptlang.org/)
+
+# Stretch Goals
+- Enabling hot reload with [craco](https://www.npmjs.com/package/@craco/craco)
+

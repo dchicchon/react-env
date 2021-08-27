@@ -8,17 +8,33 @@ Use Create React App only once! Then you are able to get any `src` folder and ru
 npm i -g @dchicchon/react-env
 ```
 
+# Packages Used
+
+[Craco](https://www.npmjs.com/package/@craco/craco) - Utilized to override Create React App's default Webpack and Babel configuration.
+
+[ShellJS](https://github.com/shelljs/shelljs) - Shell commands
+
+[Chalk](https://www.npmjs.com/package/chalk) - Coloring console logs
+
+# Developed With
+
+[TypeScript](https://www.typescriptlang.org/)
+
 # Config Setup
 
-This is an example of how the config is setup
+This is an example of what an environment's configuration will look like
 
 ```json
 {
   "current": "base",
   "envs": {
     "base": {
+      // selected react root of application
       "root": "C:\\Users\\danie\\Desktop\\Code\\JS\\npm_packages\\react-test",
+      // selected source to run app
+      "source": "C:\\Users\\danie\\Desktop\\Code\\JS\\npm_packages\\source\\src",
       "dependencies": {
+        "@craco/craco": "6.2.0",
         "@testing-library/jest-dom": "^5.14.1",
         "@testing-library/react": "^11.2.7",
         "@testing-library/user-event": "^12.8.3",
@@ -39,29 +55,24 @@ This is an example of how the config is setup
 
 # Usage
 
-Setting Root Directory for React App
+### Setting Root and Source Directories
 
-```console
-// run this in the desired root of the react app
-react-env root;
+`Be sure to be in the directory in order to set root and source directories`
+
+```
+react-env root // setting root
+react-env source // setting source
 ```
 
-Setting source
-
-```console
-react-env source
+Running `source` folder in root
 ```
-
-Running `src` folder in root
-
-```console
 // run this in desired `src` folder to run in root
 react-env run;
 ```
 
 Checking current config
 
-```console
+```
 // this will check your current environment config
 react-env config
 // use flag -envs to list envs
@@ -70,7 +81,7 @@ react-env config -envs
 
 Install dependencies to your root react app from anywhere
 
-```console
+```
 // have root install the dependencies in the current env
 react-env install
 
@@ -83,34 +94,19 @@ react-env install -dev axios
 
 Switch or create a new environment
 
-```console
+```
 // if 'test' does not exist, it will create a new environment
 react-env switch test
 ```
 
 Uninstall dependencies from env
 
-```console
+```
 react-env uninstall
 ```
 
 Delete environments in config
 
-```console
+```
 react-env delete test
 ```
-
-
-# Packages Used
-
-[ShellJS](https://github.com/shelljs/shelljs) - Shell commands
-
-[Chalk](https://www.npmjs.com/package/chalk) - Coloring console logs
-
-# Developed With
-
-[TypeScript](https://www.typescriptlang.org/)
-
-# Stretch Goals
-- Enabling hot reload with [craco](https://www.npmjs.com/package/@craco/craco)
-

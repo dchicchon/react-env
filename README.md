@@ -24,14 +24,14 @@ npm i -g @dchicchon/react-env
 
 This is an example of what an environment's configuration will look like
 
-```json
+```js
 {
   "current": "base",
   "envs": {
     "base": {
-      // selected react root of application
+       // selected react root of application
       "root": "C:\\Users\\danie\\Desktop\\Code\\JS\\npm_packages\\react-test",
-      // selected source to run app
+       // selected source to run app
       "source": "C:\\Users\\danie\\Desktop\\Code\\JS\\npm_packages\\source\\src",
       "dependencies": {
         "@craco/craco": "6.2.0",
@@ -67,6 +67,7 @@ react-env source // setting source
 ```
 
 Running `source` folder in root
+
 ```
 // run this in desired `src` folder to run in root
 react-env run;

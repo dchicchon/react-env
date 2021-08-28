@@ -20,12 +20,12 @@
   "author": "dchicchon",
   "license": "ISC",
   "dependencies": {
-    "@tsconfig/node12": "^1.0.9",
     "chalk": "^3.0.0",
     "chokidar": "^3.5.2",
     "shelljs": "^0.8.4"
   },
   "devDependencies": {
+    "@tsconfig/node12": "^1.0.9",
     "@types/node": "^16.7.1",
     "@types/shelljs": "^0.8.9"
   }

@@ -20,6 +20,16 @@ npm i -g @dchicchon/react-env
 
 [TypeScript](https://www.typescriptlang.org/)
 
+# Preface
+As per the creators of the package `Craco`, please understand the following when using this pacakge:
+
+```
+Fair Warning
+By doing this you're breaking the "guarantees" that CRA provides. That is to say you now "own" the configs. No support will be provided. Proceed with caution.
+```
+
+As such, use this package for development and learning purposes. For production, I would suggest using the normal `Create React App` workflow.
+
 # Config Setup
 
 This is an example of what an environment's configuration will look like

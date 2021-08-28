@@ -3,13 +3,11 @@ import { Config } from '../interfaces/Types'
 import { readFileSync, writeFile } from 'fs'
 
 // Maybe bring in fs
-
 import { exec, echo, cd, cp, cat, ShellString, sort } from 'shelljs'
 import { join, dirname } from 'path'
 import { cyan, yellow } from 'chalk'
 
 const configPath = join(dirname(__filename), "../lib/config.json");
-// const cracoPath = join(dirname(__filename), "../lib/craco.config.json")
 const log = console.log
 
 // Helper Functions
@@ -19,24 +17,25 @@ const addCracoFile = () => {
     const configFile = readFileSync(configPath);
     const config: Config = JSON.parse(configFile.toString());
     const env = config.envs[config.current];
-    const file = `
-    cat <<EOF >craco.config.js
-        module.exports = {
-                webpack: {
-                    configure: (webpackConfig) => {
-                        // This needs to be updated everytime we set a root/source or on run?
-                        // Need to specify the source every time we root
-                        webpackConfig.entry = ${env.src + '\\index.js'}
-                        return webpackConfig;
-                    },
-                },
-                babel: {
-                    presets: ["@babel/preset-react"],
-                },
-            };
-    EOF
-        `
-    exec(file)
+    log(env.src)
+    let formatSrc: string = ''
+    for (let i = 0; i < env.src.length; i++) {
+        let char = env.src[i] === '\\' ? '\\\\' : env.src[i]
+        formatSrc += char
+    }
+    ShellString(`module.exports = {
+        webpack: {
+            configure: (webpackConfig) => {
+                // This needs to be updated everytime we set a root/source or on run?
+                // Need to specify the source every time we root
+                webpackConfig.entry = "${formatSrc + '\\\\index.js'}"
+                return webpackConfig;
+            },
+        },
+        babel: {
+            presets: ["@babel/preset-react"],
+        },
+    };`).to('craco.config.js')
     log("Done adding craco.config.js")
 }
 

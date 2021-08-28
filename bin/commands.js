@@ -13,24 +13,25 @@ const addCracoFile = () => {
     const configFile = fs_1.readFileSync(configPath);
     const config = JSON.parse(configFile.toString());
     const env = config.envs[config.current];
-    const file = `
-    cat <<EOF >craco.config.js
-        module.exports = {
-                webpack: {
-                    configure: (webpackConfig) => {
-                        // This needs to be updated everytime we set a root/source or on run?
-                        // Need to specify the source every time we root
-                        webpackConfig.entry = ${env.src + '\\index.js'}
-                        return webpackConfig;
-                    },
-                },
-                babel: {
-                    presets: ["@babel/preset-react"],
-                },
-            };
-    EOF
-        `;
-    shelljs_1.exec(file);
+    log(env.src);
+    let formatSrc = '';
+    for (let i = 0; i < env.src.length; i++) {
+        let char = env.src[i] === '\\' ? '\\\\' : env.src[i];
+        formatSrc += char;
+    }
+    shelljs_1.ShellString(`module.exports = {
+        webpack: {
+            configure: (webpackConfig) => {
+                // This needs to be updated everytime we set a root/source or on run?
+                // Need to specify the source every time we root
+                webpackConfig.entry = "${formatSrc + '\\\\index.js'}"
+                return webpackConfig;
+            },
+        },
+        babel: {
+            presets: ["@babel/preset-react"],
+        },
+    };`).to('craco.config.js');
     log("Done adding craco.config.js");
 };
 var Commands;

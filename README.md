@@ -58,6 +58,8 @@ This is an example of what an environment's configuration will look like
 ### Setting Root and Source Directories
 
 `Be sure to be in the directory in order to set root and source directories`
+Also be sure to have a src directory with an index.js in the `root` directory. There doesn't have to be anything
+in there, but the app will complain if nothing is there.
 
 ```
 react-env root // setting root

@@ -4,7 +4,7 @@ interface Dependency {
 
 interface Environment {
     root: string,
-    src: string,
+    source: string,
     dependencies: Dependency,
     devDependencies: Dependency
 }

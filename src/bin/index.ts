@@ -10,7 +10,7 @@ switch (command) {
         Commands.root()
         break;
     case 'source':
-        Commands.src()
+        Commands.source()
         break
     case 'run':
         Commands.run()

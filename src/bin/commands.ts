@@ -17,10 +17,10 @@ const addCracoFile = () => {
     const configFile = readFileSync(configPath);
     const config: Config = JSON.parse(configFile.toString());
     const env = config.envs[config.current];
-    log(env.src)
+    log(env.source)
     let formatSrc: string = ''
-    for (let i = 0; i < env.src.length; i++) {
-        let char = env.src[i] === '\\' ? '\\\\' : env.src[i]
+    for (let i = 0; i < env.source.length; i++) {
+        let char = env.source[i] === '\\' ? '\\\\' : env.source[i]
         formatSrc += char
     }
     ShellString(`module.exports = {
@@ -92,14 +92,14 @@ export module Commands {
         }
     }
 
-    export const src = () => {
+    export const source = () => {
         try {
             const newSource = process.cwd()
             log(cyan(`Sourcing ${newSource}`))
             const rawData = readFileSync(configPath);
             const config: Config = JSON.parse(rawData.toString());
             const env = config.envs[config.current]
-            env.src = newSource
+            env.source = newSource
             const data = JSON.stringify(config);
             writeFile(configPath, data, "utf8", (err) => {
                 if (err) console.error(err);
@@ -114,9 +114,9 @@ export module Commands {
         // Lets read our config file
         const rawData = readFileSync(configPath);
         const config: Config = JSON.parse(rawData.toString());
-        const { src } = config.envs[config.current]
+        const { source } = config.envs[config.current]
         const { root } = config.envs[config.current];
-        log(cyan(`Running source:${src} at root:${root}`));
+        log(cyan(`Running source:${source} at root:${root}`));
         cd(root);
         addCracoFile()
         exec("npm start");
@@ -274,7 +274,7 @@ export module Commands {
             log(cyan(`Creating new environment:${newEnv}`))
             const env = {
                 root: "",
-                src: "",
+                source: "",
                 dependencies: {},
                 devDependencies: {},
             };
@@ -330,7 +330,7 @@ export module Commands {
         config.current = 'base'
         config.envs["base"] = {
             root: '',
-            src: '',
+            source: '',
             dependencies: {},
             devDependencies: {}
         }

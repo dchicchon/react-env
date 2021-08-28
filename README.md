@@ -55,7 +55,7 @@ This is an example of what an environment's configuration will look like
 
 # Usage
 
-### Setting Root and Source Directories
+## Setting Root and Source Directories
 
 `Be sure to be in the directory in order to set root and source directories`
 Also be sure to have a src directory with an index.js in the `root` directory. There doesn't have to be anything
@@ -66,14 +66,14 @@ react-env root // setting root
 react-env source // setting source
 ```
 
-Running `source` folder in root
+## Running Source Folder on Root
 
 ```
 // run this in desired `src` folder to run in root
 react-env run;
 ```
 
-Checking current config
+## Checking the config
 
 ```
 // this will check your current environment config
@@ -82,34 +82,34 @@ react-env config
 react-env config -envs
 ```
 
-Install dependencies to your root react app from anywhere
+## Install and Uninstall Dependencies
 
 ```
 // have root install the dependencies in the current env
 react-env install
 
-// install dependencies
-react-env install axios
+// use flag -dev to install devDependencies. Without flag installs to dependencies
+react-env install [-dev] [deps]
 
-// use flag -dev to install devDependencies
-react-env install -dev axios
+// use -all flag to uninstall all dependencies. Specify as many dependencies that you would want to uninstall
+react-env uninstall [-all] [deps]
 ```
 
-Switch or create a new environment
+## Switch or create a new environment
 
 ```
 // if 'test' does not exist, it will create a new environment
 react-env switch test
 ```
 
-Uninstall dependencies from env
-
-```
-react-env uninstall
-```
-
-Delete environments in config
+## Delete environments in config
 
 ```
 react-env delete test
+```
+
+## Reset React-Env
+
+```
+react-env reset
 ```

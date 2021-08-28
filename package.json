@@ -1,6 +1,6 @@
 {
   "name": "@dchicchon/react-env",
-  "version": "1.4.2",
+  "version": "1.4.3",
   "description": "Create a React Environment similar to Conda Env. No need to constantly create multiple create react apps",
   "main": "index.js",
   "bin": {

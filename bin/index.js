@@ -12,7 +12,7 @@ switch (command) {
         commands_1.Commands.root();
         break;
     case 'source':
-        commands_1.Commands.src();
+        commands_1.Commands.source();
         break;
     case 'run':
         commands_1.Commands.run();

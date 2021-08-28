@@ -13,10 +13,10 @@ const addCracoFile = () => {
     const configFile = fs_1.readFileSync(configPath);
     const config = JSON.parse(configFile.toString());
     const env = config.envs[config.current];
-    log(env.src);
+    log(env.source);
     let formatSrc = '';
-    for (let i = 0; i < env.src.length; i++) {
-        let char = env.src[i] === '\\' ? '\\\\' : env.src[i];
+    for (let i = 0; i < env.source.length; i++) {
+        let char = env.source[i] === '\\' ? '\\\\' : env.source[i];
         formatSrc += char;
     }
     shelljs_1.ShellString(`module.exports = {
@@ -68,14 +68,14 @@ var Commands;
             log(chalk_1.yellow("There was an error in rooting your React App. Please ensure this is a valid react app"));
         }
     };
-    Commands.src = () => {
+    Commands.source = () => {
         try {
             const newSource = process.cwd();
             log(chalk_1.cyan(`Sourcing ${newSource}`));
             const rawData = fs_1.readFileSync(configPath);
             const config = JSON.parse(rawData.toString());
             const env = config.envs[config.current];
-            env.src = newSource;
+            env.source = newSource;
             const data = JSON.stringify(config);
             fs_1.writeFile(configPath, data, "utf8", (err) => {
                 if (err)
@@ -89,9 +89,9 @@ var Commands;
     Commands.run = () => {
         const rawData = fs_1.readFileSync(configPath);
         const config = JSON.parse(rawData.toString());
-        const { src } = config.envs[config.current];
+        const { source } = config.envs[config.current];
         const { root } = config.envs[config.current];
-        log(chalk_1.cyan(`Running source:${src} at root:${root}`));
+        log(chalk_1.cyan(`Running source:${source} at root:${root}`));
         shelljs_1.cd(root);
         addCracoFile();
         shelljs_1.exec("npm start");
@@ -237,7 +237,7 @@ var Commands;
             log(chalk_1.cyan(`Creating new environment:${newEnv}`));
             const env = {
                 root: "",
-                src: "",
+                source: "",
                 dependencies: {},
                 devDependencies: {},
             };
@@ -292,7 +292,7 @@ var Commands;
         config.current = 'base';
         config.envs["base"] = {
             root: '',
-            src: '',
+            source: '',
             dependencies: {},
             devDependencies: {}
         };
